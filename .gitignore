@@ -1,3 +1,4 @@
 data/voting_district
 *.shp
 shp
+.DS_Store
