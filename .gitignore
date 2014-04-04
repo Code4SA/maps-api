@@ -1,4 +1,5 @@
 data/voting_district
+data/ward
 *.shp
 shp
 .DS_Store
