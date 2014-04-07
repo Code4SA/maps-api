@@ -2,6 +2,7 @@
 var restify = require('restify');
 var topojson = require('topojson');
 var fs = require('fs');
+var markdown = require( "markdown" ).markdown;
 
 var political_maps = ['ward', 'municipality', 'province'];
 var id_fields = {
@@ -65,7 +66,7 @@ function generate_map(demarcation, res, params) {
 		}
 		if (params.format == "geojson") {
 			//We send geojson as it is
-			res.send(geojson);
+			res.json(geojson);
 			return true;
 		}
 		//Check cache
@@ -82,11 +83,11 @@ function generate_map(demarcation, res, params) {
 					}
 					console.log("Cached " + fname);
 				});
-				res.send(output);
+				res.json(output);
 				return true;
 			} else {
 				console.log("Hit cache " + fname);
-				res.send(JSON.parse(data));
+				res.json(JSON.parse(data));
 				return true;
 			}
 		});
@@ -122,6 +123,15 @@ function political(req, res, next) {
 	next();
 }
 
+function readme(req, res, next) {
+	fs.readFile("API.md", "utf8", function(err, data) {
+		// var md = markdown.toHTML(data);
+		res.contentType="text/plain";
+		res.send(data);
+	});
+	next();
+}
+
 //Set up server
 var server = restify.createServer();
 server.use(restify.CORS());
@@ -129,6 +139,7 @@ server.use(restify.queryParser());
 
 // Routes
 server.get('/political/:demarcation', political);
+server.get('/', readme)
 
 //Listen for incoming connections
 server.listen(8080, function() {
