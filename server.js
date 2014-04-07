@@ -23,6 +23,20 @@ function check_map(demarcation, maps) {
 	return new restify.InvalidArgumentError("Invalid demarcation. Valid demarcations are: " + maps.join(", "));
 }
 
+function flatten_object(objs) {
+	var result = [];
+	for (obj in objs) {
+		if ((typeof objs[obj] != "function") && (objs[obj] !== false)) {
+			if (typeof objs[obj] == "object") {
+				result = result.concat(flatten_object(objs[obj]));
+			} else {
+				result.push(objs[obj]);
+			}
+		}
+	}
+	return result;
+}
+
 function generate_map(demarcation, res, params) {
 	fs.readFile("data/" + demarcation + "/geojson/" + demarcation + ".json", "utf8", function(err, data) {
 		geojson = JSON.parse(data);
@@ -54,26 +68,30 @@ function generate_map(demarcation, res, params) {
 			res.send(geojson);
 			return true;
 		}
-		var output = topojson.topology({ demarcation: geojson }, params);
-		// var simple = topojson.simplify(topology);
-		// res.send(simple);
-		// console.log(topology.objects.collection);
+		//Check cache
+		var paramsarray = flatten_object(params);
+		var fname = "data/" + demarcation + "/topojson/" + demarcation + "-" + paramsarray.join("-") + ".json";
+		fs.readFile(fname, function(err, data) {
+			if (err) {
+				var output = topojson.topology({ demarcation: geojson }, params);
+				//Cache this
+				
+				fs.writeFile(fname, output, function(err) {
+					if (err) {
+						console.log("Error saving cache file " + fname, err);
+					}
+					console.log("Cached " + fname);
+				});
+				res.send(output);
+				return true;
+			} else {
+				console.log("Hit cache " + fname);
+				res.send(data);
+				return true;
+			}
+		});
 		
-		// simple = topojson.simplify(topology, {
-  //       "retain-proportion": 1,
-  //       "coordinate-system": "cartesian",
-  //     	});
-		// var arcs = [];
-		// console.log(geojson.geometries.length);
-		// for(var x = 0; x < geojson.geometries.length; x++) {
-		// 	for (var y = 0; y < geojson.geometries[x].arcs.length; y++) {
-		// 		arcs.push(geojson.geometries[x].arcs[y]);
-		// 	}
-		// }
-		// var objects = {};
-		// objects[demarcation] = geojson;
-		res.send(output);
-		// res.send(topology.objects.collection);
+		// res.send(output);
 		return true;
 	});
 }
