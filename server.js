@@ -39,41 +39,42 @@ function flatten_object(objs) {
 }
 
 function generate_map(demarcation, res, params) {
-	fs.readFile("data/" + demarcation + "/geojson/" + demarcation + ".json", "utf8", function(err, data) {
-		geojson = JSON.parse(data);
-		if (params.filter) {
-			var tmp = [];
-			for(var y = 0; y < geojson.features.length; y++) {
-				
-				for (field in params.filter) {
-					if (field in geojson.features[y].properties) {
-						if (params.filter[field] instanceof Array) {
-							for(var z = 0; z < params.filter[field].length; z++) {
-								if (params.filter[field][z] == geojson.features[y].properties[field]) {
-									// console.log(geojson.features[y].properties);
+	//Check cache
+	var paramsarray = flatten_object(params);
+	var fname = "data/" + demarcation + "/" + params.format + "/" + demarcation + "-" + paramsarray.join("-") + ".json"; //Putting params.format straight into the url - Could this be a security risk?
+	fs.readFile(fname, function(err, data) {
+		if (err) {
+			fs.readFile("data/" + demarcation + "/geojson/" + demarcation + ".json", "utf8", function(err, data) {
+				geojson = JSON.parse(data);
+				if (params.filter) {
+					var tmp = [];
+					for(var y = 0; y < geojson.features.length; y++) {
+						
+						for (field in params.filter) {
+							if (field in geojson.features[y].properties) {
+								if (params.filter[field] instanceof Array) {
+									for(var z = 0; z < params.filter[field].length; z++) {
+										if (params.filter[field][z] == geojson.features[y].properties[field]) {
+											// console.log(geojson.features[y].properties);
+											tmp.push(geojson.features[y]);
+										}
+									}
+									
+								} else if (params.filter[field] == geojson.features[y].properties[field]) {
 									tmp.push(geojson.features[y]);
 								}
 							}
-							
-						} else if (params.filter[field] == geojson.features[y].properties[field]) {
-							tmp.push(geojson.features[y]);
 						}
 					}
+					geojson.features = tmp;
+					
 				}
-			}
-			geojson.features = tmp;
-			
-		}
-		if (params.format == "geojson") {
-			//We send geojson as it is
-			res.json(geojson);
-			return true;
-		}
-		//Check cache
-		var paramsarray = flatten_object(params);
-		var fname = "data/" + demarcation + "/topojson/" + demarcation + "-" + paramsarray.join("-") + ".json";
-		fs.readFile(fname, function(err, data) {
-			if (err) {
+				if (params.format == "geojson") {
+					//We send geojson as it is
+					res.json(geojson);
+					return true;
+				}
+		
 				var output = topojson.topology({ demarcation: geojson }, params);
 				//Cache this
 				
@@ -85,15 +86,15 @@ function generate_map(demarcation, res, params) {
 				});
 				res.json(output);
 				return true;
-			} else {
-				console.log("Hit cache " + fname);
-				res.json(JSON.parse(data));
-				return true;
-			}
+			
 		});
-		
-		// res.send(output);
+	} else {
+		console.log("Hit cache " + fname);
+		res.json(JSON.parse(data));
 		return true;
+	}
+		// res.send(output);
+	return true;
 	});
 }
 
