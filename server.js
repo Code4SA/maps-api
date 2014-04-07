@@ -76,7 +76,7 @@ function generate_map(demarcation, res, params) {
 				var output = topojson.topology({ demarcation: geojson }, params);
 				//Cache this
 				
-				fs.writeFile(fname, output, function(err) {
+				fs.writeFile(fname, JSON.stringify(output), function(err) {
 					if (err) {
 						console.log("Error saving cache file " + fname, err);
 					}
@@ -86,7 +86,7 @@ function generate_map(demarcation, res, params) {
 				return true;
 			} else {
 				console.log("Hit cache " + fname);
-				res.send(data);
+				res.send(JSON.parse(data));
 				return true;
 			}
 		});
