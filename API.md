@@ -47,51 +47,39 @@ We have Provinces, Municipalities, Wards and Voting Districts. The meta-data for
 
 | Property 		| Example 		|
 | -------- 		| ------- 		|
-| CODE     		| EC, WC... 	|
-| PROVINCE 		| Eastern Cape 	|
-| Area     		| A number 		|
-| Shape_Leng	| A number 		|
-| Shape_Area 	| A number 		|
-| Level     	| 0 			|
+| province		| EC, WC... 	|
+| province_name	| Eastern Cape 	|
+| area     		| A number 		|
 
 ### Municipalities
 
 | Property 		| Example 		|
 | -------- 		| ------- 		|
-| PROVINCE     	| EC, WC... 	|
-| CATEGORY 		| A, B			|
-| CAT_2 		| Local Municiaplity, Metropolitan Municipality			|
-| CAT_B 		| CPT, NC048	|
-| MUNICNAME 	| Langeberg, City of Cape Town |
-| MAP_TITLE 	| MUNICNAME + CAT_2	|
-| DISTRICT 		| DC1			|
-| MUN_CD 		| (NC071), (CPT)|
-| AREA     		| A number 		|
-| Shape_Leng	| A number 		|
-| Shape_Area 	| A number 		|
-| Level     	| 1 			|
+| province     	| EC, WC... 	|
+| category 		| A, B			|
+| category_name | Local Municiaplity, Metropolitan Municipality			|
+| municipality 	| CPT, NC048	|
+| municipality_name | Langeberg, City of Cape Town |
+| district 		| DC1			|
+| area     		| A number 		|
 
 ### Wards
 
 | Property 		| Example 		|
 | -------- 		| ------- 		|
-| PROVINCE     	| EC, WC... 	|
-| CAT_B 		| CPT, NC048	|
-| MUNICNAME 	| Langeberg, City of Cape Town |
-| WARDNO 		| 1, 2, 3...	|
-| WARD_ID 		| 10101008		|
-| WARD_POP 		| A Number		|
-| Area     		| A number 		|
-| Shape_Leng	| A number 		|
-| Shape_Area 	| A number 		|
-| Level     	| 3 			|
+| province     	| EC, WC... 	|
+| municipality 	| CPT, NC048	|
+| municipality_name | Langeberg, City of Cape Town |
+| ward_number 	| 1, 2, 3...	|
+| ward 			| 10101008		|
+| population 	| A Number		|
+| area     		| A number 		|
 
 ### Voting Districts
 
 | Property 		| Example 		|
 | -------- 		| ------- 		|
-| PROVINCE     	| Eastern Cape 	|
-| MUNICIPALI 	| EC101 - Camdeboo [Graaf-Reneit]	|
-| MUNICNAME 	| Langeberg, City of Cape Town |
-| FKLWARDID 	| A number		|
-| VDNumber 		| 10020014		|
+| province     	| Eastern Cape 	|
+| municipality_name | Langeberg, City of Cape Town |
+| ward 			| A number		|
+| voting_district	| 10020014		|
