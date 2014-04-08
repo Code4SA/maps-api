@@ -22,8 +22,8 @@ http://maps.code4sa.org/political/[map type]?format=topojson
 You can filter by property:
 ```
 http://maps.code4sa.org/political/[map type]?filter[KEY]=VALUE
-http://maps.code4sa.org/political/[map type]?filter[PROVINCE]=EC
-http://maps.code4sa.org/political/[map type]?filter[PROVINCE]=EC&filter[PROVINCE]=WC
+http://maps.code4sa.org/political/[map type]?filter[province]=EC
+http://maps.code4sa.org/political/[map type]?filter[province]=EC&filter[province]=WC
 ```
 
 ## Quantization
@@ -76,6 +76,8 @@ We have Provinces, Municipalities, Wards and Voting Districts. The meta-data for
 | area     		| A number 		|
 
 ### Voting Districts
+
+*Still coming*
 
 | Property 		| Example 		|
 | -------- 		| ------- 		|
