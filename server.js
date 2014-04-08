@@ -5,10 +5,37 @@ var fs = require('fs');
 var markdown = require( "markdown" ).markdown;
 
 var political_maps = ['ward', 'municipality', 'province'];
-var id_fields = {
-	ward: "WARD_ID",
-	municipality: "CAT_B",
-	province: "CODE"
+
+var normalized_fields = {
+	ward: {
+		PROVINCE: "province",
+		CAT_B: "municipality",
+		MUNICNAME: "municipality_name",
+		WARDNO: "ward_number",
+		WARD_ID: "ward",
+		WARD_POP: "population",
+		"Area": "area"
+	},
+	municipality: {
+		PROVINCE: "province",
+		CAT_B: "municipality",
+		CATEGORY: "category",
+		CAT2: "category_name",
+		MUNICNAME: "municipality_name",
+		DISTRICT: "district",
+		AREA: "area"
+	},
+	province: {
+		CODE: "province",
+		PROVINCE: "province_name",
+		"Area": "area"
+	},
+	voting_district: {
+		PROVINCE: "province_name",
+		FKLWARDID: "ward",
+		MUNICIPALI: "municipality_name",
+		VDNumber: "voting_district"
+	}
 }
 
 function check_map(demarcation, maps) {
@@ -46,10 +73,22 @@ function generate_map(demarcation, res, params) {
 		if (err) {
 			fs.readFile("data/" + demarcation + "/geojson/" + demarcation + ".json", "utf8", function(err, data) {
 				geojson = JSON.parse(data);
+				//Fix the field names
+				for(var y = 0; y < geojson.features.length; y++) {
+					var row = geojson.features[y].properties;
+					var tmprow = {};
+					for (property in row) {
+						if (normalized_fields[demarcation][property]) {
+							tmprow[normalized_fields[demarcation][property]] = row[property]; //Booya!
+						}
+					}
+					geojson.features[y].properties = tmprow;
+				}
+
+				//Filter the Geojson
 				if (params.filter) {
 					var tmp = [];
 					for(var y = 0; y < geojson.features.length; y++) {
-						
 						for (field in params.filter) {
 							if (field in geojson.features[y].properties) {
 								if (params.filter[field] instanceof Array) {
@@ -59,7 +98,6 @@ function generate_map(demarcation, res, params) {
 											tmp.push(geojson.features[y]);
 										}
 									}
-									
 								} else if (params.filter[field] == geojson.features[y].properties[field]) {
 									tmp.push(geojson.features[y]);
 								}
@@ -67,8 +105,8 @@ function generate_map(demarcation, res, params) {
 						}
 					}
 					geojson.features = tmp;
-					
 				}
+
 				if (params.format == "geojson") {
 					//We send geojson as it is
 					res.json(geojson);
@@ -111,7 +149,7 @@ function political(req, res, next) {
 		format: req.params.format || "topojson",
 		'coordinate-system': req.params.coordinate_system || "cartesian",
 		quantization: req.params.quantization || 1000,
-		id: function(d) { return d.properties[id_fields[demarcation]] },
+		id: function(d) { return d.properties[demarcation] },
 		filter: req.params.filter || false,
 		verbose: req.params.debug || false,
 		"property-transform": function(properties, key, value) {
