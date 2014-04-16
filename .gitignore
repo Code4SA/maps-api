@@ -4,3 +4,13 @@ data/ward
 shp
 .DS_Store
 *.pyc
+*.json
+*.dbf
+*.geojson
+*.prj
+*.sbn
+*.sbx
+*.shx
+*.xml
+*.ind
+*.idm
