@@ -1,0 +1,33 @@
+#!/usr/bin/python
+# Converts all .shp files in /data into .geojson
+
+import fnmatch
+import os
+# from subprocess import call
+import ogr2ogr
+import sys
+
+def convert():
+	filelist = find_files()
+	print "Found", len(filelist), "shape files";
+	for filename in filelist:
+		do_convert(filename)
+
+def find_files():
+	matches = []
+	for root, dirnames, filenames in os.walk(sys.argv[1]):
+		for filename in fnmatch.filter(filenames, '*.shp'):
+			matches.append(os.path.join(root, filename))
+	return matches
+
+def do_convert(filename):
+	geoname = filename.replace(".shp", ".geojson")
+	if not os.path.isfile(geoname):
+		print "Converting", filename
+		ogr2ogr.main(["","-f", "GeoJSON", "-t_srs", "crs:84", geoname, filename])
+
+if __name__ == "__main__":
+	if (len(sys.argv) != 2):
+		print "USAGE: shp2geojson [directory]"
+	else:
+		convert()
