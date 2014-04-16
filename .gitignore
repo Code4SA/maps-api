@@ -3,3 +3,4 @@ data/ward
 *.shp
 shp
 .DS_Store
+*.pyc
