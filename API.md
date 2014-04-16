@@ -11,6 +11,13 @@ For instance, ward data could be accessed as follows:
 http://maps.code4sa.org/political/ward
 ```
 
+## Year
+You can specify a year as follows:
+```
+http://maps.code4sa.org/political/[year]/[map type]
+```
+Please note that if we can't find data for the exact year, we will keep going back year by year until we find the data. So for instance, if you ask for the wards data for 2014, we go back to the 2011 wards because these are the wards that are still relevant in 2014. The year that we finally return is noted as the property "year" in the response.
+
 ## Format
 You can specify Topojson (default) or Geojson results:
 ```

@@ -12,7 +12,9 @@ var normalized_fields = {
 		CAT_B: "municipality",
 		MUNICNAME: "municipality_name",
 		WARDNO: "ward_number",
+		WARD_NO: "ward_number",
 		WARD_ID: "ward",
+		WARDID: "ward",
 		WARD_POP: "population",
 		"Area": "area"
 	},
@@ -65,13 +67,65 @@ function flatten_object(objs) {
 	return result;
 }
 
-function generate_map(demarcation, res, params) {
+function safe_array(arr) {
+	for (var x = 0; x < arr.length; x++) {
+		arr[x] = encodeURIComponent(arr[x])
+	}
+	return arr;
+}
+
+function merge_objects(obj1, obj2) {
+	// var obj3 = {};
+	for (key in obj2) {
+		obj1[key] = obj2[key];
+	}
+	// for (key in obj2) {
+	// 	obj3[key] = obj1[key];
+	// }
+	// return obj3;
+}
+
+function find_file(year, demarcation) {
+	// We might be asked for Wards 2009. However this is actually Wards 2006. So if we don't find an exact match, keep looking back until we find something, else throw an error.
+
+	if (year < 1999) {
+		return false;
+	}
+
+	var basename = "data/" + year + "/" + demarcation;
+	var fname = basename + ".geojson";
+	console.log("Checking for " + basename);
+	if (fs.existsSync(fname)) { 
+	//Direct hit
+		return year;
+	}
+	var prevyear = year - 1;
+	return find_file(prevyear, demarcation);
+}
+
+function generate_map(year, demarcation, res, params) {
 	//Check cache
 	var paramsarray = flatten_object(params);
-	var fname = "data/" + demarcation + "/" + params.format + "/" + demarcation + "-" + paramsarray.join("-") + ".json"; //Putting params.format straight into the url - Could this be a security risk?
+	
+	//A bit of security
+	paramsarray = safe_array(paramsarray);
+	
+	//Find the right year
+	var finalyear = find_file(year, demarcation);
+	var basename = "data/" + finalyear + "/" + demarcation;
+	if (!basename) {
+		return new restify.InvalidArgumentError("Unable to find this demarcation for this or preceding years.");
+	}
+	
+	//Set up a result object so we an add some extra data to it
+	var result = { source: "Code4SA", year: finalyear, params: params };
+
+	var fname = basename + "-" + paramsarray.join("-") + ".json";
+	
 	fs.readFile(fname, function(err, data) {
 		if (err) {
-			fs.readFile("data/" + demarcation + "/geojson/" + demarcation + ".json", "utf8", function(err, data) {
+			console.log("Cache miss, generating from " + basename + ".geojson")
+			fs.readFile(basename + ".geojson", "utf8", function(err, data) {
 				geojson = JSON.parse(data);
 				//Fix the field names
 				for(var y = 0; y < geojson.features.length; y++) {
@@ -108,8 +162,9 @@ function generate_map(demarcation, res, params) {
 				}
 
 				if (params.format == "geojson") {
+					merge_objects(result, geojson);
 					//We send geojson as it is
-					res.json(geojson);
+					res.json(result);
 					return true;
 				}
 		
@@ -122,27 +177,31 @@ function generate_map(demarcation, res, params) {
 					}
 					console.log("Cached " + fname);
 				});
-				res.json(output);
+				merge_objects(result, output);
+				res.json(result);
 				return true;
 			
 		});
 	} else {
 		console.log("Hit cache " + fname);
-		res.json(JSON.parse(data));
+		merge_objects(result, JSON.parse(data));
+		res.json(result);
 		return true;
 	}
 		// res.send(output);
-	return true;
+		return true;
 	});
 }
 
 function political(req, res, next) {
 	var demarcation = req.params.demarcation;
-	check = check_map(demarcation, political_maps);
+	var year = req.params.year || "2014";
+	var check = check_map(demarcation, political_maps);
 	if (check !== true) {
+		console.log(check);
 		return next(check);
 	}
-	console.log('Got demarcation request ' + demarcation);
+	console.log('Got demarcation request /political/' + year + "/" + demarcation);
 	console.log(req.params);
 	//Default parameters
 	var params = {
@@ -158,7 +217,12 @@ function political(req, res, next) {
 		},
 	};
 
-	generate_map(req.params.demarcation, res, params);
+	var check = generate_map(year, demarcation, res, params);
+	// console.log(result);
+	if (check !== true) {
+		// console.log(check);
+		return next(check);
+	}
 	next();
 }
 
@@ -178,6 +242,7 @@ server.use(restify.queryParser());
 
 // Routes
 server.get('/political/:demarcation', political);
+server.get('/political/:year/:demarcation', political);
 server.get('/', readme)
 
 //Listen for incoming connections
