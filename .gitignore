@@ -14,3 +14,5 @@ shp
 *.ind
 *.idm
 *.lyr
+voting_district.geojson
+ward.geojson
