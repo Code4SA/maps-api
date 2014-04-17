@@ -6,7 +6,6 @@ shp
 *.pyc
 *.json
 *.dbf
-*.geojson
 *.prj
 *.sbn
 *.sbx
