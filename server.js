@@ -14,29 +14,49 @@ var normalized_fields = {
 		WARDNO: "ward_number",
 		WARD_NO: "ward_number",
 		WARD_ID: "ward",
-		WARDID: "ward",
+		WARDID: "ward", //2006
 		WARD_POP: "population",
+		COUNCILLOR: "counillor", //2006
 		"Area": "area"
 	},
 	municipality: {
 		PROVINCE: "province",
 		CAT_B: "municipality",
 		CATEGORY: "category",
+		TYPE: "category", //2006
 		CAT2: "category_name",
 		MUNICNAME: "municipality_name",
+		COMMON_NAM: "municipality_name", //2006
 		DISTRICT: "district",
 		AREA: "area"
 	},
 	province: {
 		CODE: "province",
 		PROVINCE: "province_name",
-		"Area": "area"
+		code: "province", //2006
+		province: "province_name", //2006
+		"Area": "area",
+		hectares: "hectares" //2006
 	},
 	voting_district: {
 		PROVINCE: "province_name",
 		FKLWARDID: "ward",
 		MUNICIPALI: "municipality_name",
 		VDNumber: "voting_district"
+	}
+}
+
+var transform_fields = {
+	ward: {
+		province: function(s) {
+			if (s == "NP") {
+				return "LIM";
+			}
+			if (s == "GP") {
+				return "GT";
+			}
+			return s;
+		}
 	}
 }
 
