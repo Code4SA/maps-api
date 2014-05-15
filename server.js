@@ -4,7 +4,7 @@ var topojson = require('topojson');
 var fs = require('fs');
 var markdown = require( "markdown" ).markdown;
 
-var political_maps = ['ward', 'municipality', 'province'];
+var political_maps = ['ward', 'municipality', 'province', 'voting_district'];
 
 var normalized_fields = {
 	ward: {
@@ -42,7 +42,11 @@ var normalized_fields = {
 		PROVINCE: "province_name",
 		FKLWARDID: "ward",
 		MUNICIPALI: "municipality_name",
-		VDNumber: "voting_district"
+		VDNumber: "voting_district",
+		SPROVINCE: "province_name",
+		PKLVDNUMBE: "voting_district",
+		SMUNICIPAL: "municipality_name",
+		FKLMUNICID: "municipality_id"
 	}
 }
 
@@ -144,8 +148,10 @@ function generate_map(year, demarcation, res, params) {
 	
 	fs.readFile(fname, function(err, data) {
 		if (err) {
-			console.log("Cache miss, generating from " + basename + ".geojson")
+			console.log("Cache miss, generating from " + basename + ".geojson");
 			fs.readFile(basename + ".geojson", "utf8", function(err, data) {
+				console.log(err);
+				console.log("Read file");
 				geojson = JSON.parse(data);
 				//Fix the field names
 				for(var y = 0; y < geojson.features.length; y++) {
