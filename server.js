@@ -219,7 +219,20 @@ function generate_map(year, demarcation, res, params) {
 	});
 }
 
+function set_headers(res) {
+	res.setHeader("Cache-Control", "no-transform,public,max-age=86400,s-maxage=86400");
+}
+// function fix_cors_header(req, res, next) {
+// 	res.setHeader("Access-Control-Allow-Origin", "*");
+// 	console.log(res.headers());
+// 	res.send();
+// 	next();
+// }
+
 function political(req, res, next) {
+	set_headers(res);
+	// res.setHeader("Access-Control-Allow-Origin", "*");
+	// console.log(res.headers());
 	var demarcation = req.params.demarcation;
 	var year = req.params.year || "2014";
 	var check = check_map(demarcation, political_maps);
@@ -262,12 +275,18 @@ function readme(req, res, next) {
 }
 
 //Set up server
-var server = restify.createServer();
-server.use(restify.CORS());
+var server = restify.createServer({
+	name: 'Code4SA-Maps-API'
+});
+// server.use(restify.CORS({
+// 	matchOrigin: false
+// }));
+server.use(restify.fullResponse());
 server.use(restify.queryParser());
-
+// server.use(fix_cors_header);
 // Routes
 server.get('/political/:demarcation', political);
+// server.head('/political/:demarcation', fix_cors_header);
 server.get('/political/:year/:demarcation', political);
 server.get('/', readme)
 
