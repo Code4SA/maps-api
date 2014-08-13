@@ -4,9 +4,10 @@ var topojson = require('topojson');
 var fs = require('fs');
 var markdown = require( "markdown" ).markdown;
 
-var political_maps = ['ward', 'municipality', 'province', 'voting_district'];
+var political_maps = ['country', 'ward', 'municipality', 'province', 'voting_district'];
 
 var normalized_fields = {
+	country: {},
 	ward: {
 		PROVINCE: "province",
 		CAT_B: "municipality",
