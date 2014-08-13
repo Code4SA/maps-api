@@ -1,8 +1,10 @@
 // Libraries
+var config = require('./config');
 var restify = require('restify');
 var topojson = require('topojson');
 var fs = require('fs');
 var markdown = require( "markdown" ).markdown;
+var MongoClient = require('mongodb').MongoClient;
 
 var political_maps = ['ward', 'municipality', 'province', 'voting_district'];
 
@@ -127,6 +129,65 @@ function find_file(year, demarcation) {
 	return find_file(prevyear, demarcation);
 }
 
+function makeMap(data, params, cachefile, result) {
+	geojson = JSON.parse(data);
+
+	demarcation = params.demarcation;
+	//Fix the field names
+	for(var y = 0; y < geojson.features.length; y++) {
+		var row = geojson.features[y].properties;
+		var tmprow = {};
+		for (property in row) {
+			if (normalized_fields[demarcation] && normalized_fields[demarcation][property]) {
+				tmprow[normalized_fields[demarcation][property]] = row[property]; //Booya!
+			}
+		}
+		geojson.features[y].properties = tmprow;
+	}
+
+	//Filter the Geojson
+	if (params.filter) {
+		var tmp = [];
+		for(var y = 0; y < geojson.features.length; y++) {
+			for (field in params.filter) {
+				if (field in geojson.features[y].properties) {
+					if (params.filter[field] instanceof Array) {
+						for(var z = 0; z < params.filter[field].length; z++) {
+							if (params.filter[field][z] == geojson.features[y].properties[field]) {
+								// console.log(geojson.features[y].properties);
+								tmp.push(geojson.features[y]);
+							}
+						}
+					} else if (params.filter[field] == geojson.features[y].properties[field]) {
+						tmp.push(geojson.features[y]);
+					}
+				}
+			}
+		}
+		geojson.features = tmp;
+	}
+
+	if (params.format == "geojson") {
+		merge_objects(result, geojson);
+		//We send geojson as it is
+		res.json(result);
+		return true;
+	}
+
+	var output = topojson.topology({ demarcation: geojson }, params);
+	//Cache this
+	
+	fs.writeFile(cachefile, JSON.stringify(output), function(err) {
+		if (err) {
+			console.log("Error saving cache file " + fname, err);
+		}
+		console.log("Cached " + fname);
+	});
+
+	merge_objects(result, output);
+	// return result;
+}
+
 function generate_map(year, demarcation, res, params) {
 	//Check cache
 	var paramsarray = flatten_object(params);
@@ -152,98 +213,23 @@ function generate_map(year, demarcation, res, params) {
 			fs.readFile(basename + ".geojson", "utf8", function(err, data) {
 				console.log(err);
 				console.log("Read file");
-				geojson = JSON.parse(data);
-				//Fix the field names
-				for(var y = 0; y < geojson.features.length; y++) {
-					var row = geojson.features[y].properties;
-					var tmprow = {};
-					for (property in row) {
-						if (normalized_fields[demarcation][property]) {
-							tmprow[normalized_fields[demarcation][property]] = row[property]; //Booya!
-						}
-					}
-					geojson.features[y].properties = tmprow;
-				}
-
-				//Filter the Geojson
-				if (params.filter) {
-					var tmp = [];
-					for(var y = 0; y < geojson.features.length; y++) {
-						for (field in params.filter) {
-							if (field in geojson.features[y].properties) {
-								if (params.filter[field] instanceof Array) {
-									for(var z = 0; z < params.filter[field].length; z++) {
-										if (params.filter[field][z] == geojson.features[y].properties[field]) {
-											// console.log(geojson.features[y].properties);
-											tmp.push(geojson.features[y]);
-										}
-									}
-								} else if (params.filter[field] == geojson.features[y].properties[field]) {
-									tmp.push(geojson.features[y]);
-								}
-							}
-						}
-					}
-					geojson.features = tmp;
-				}
-
-				if (params.format == "geojson") {
-					merge_objects(result, geojson);
-					//We send geojson as it is
-					res.json(result);
-					return true;
-				}
-		
-				var output = topojson.topology({ demarcation: geojson }, params);
-				//Cache this
-				
-				fs.writeFile(fname, JSON.stringify(output), function(err) {
-					if (err) {
-						console.log("Error saving cache file " + fname, err);
-					}
-					console.log("Cached " + fname);
-				});
-				merge_objects(result, output);
+				result = makeMap(data, params);
 				res.json(result);
 				return true;
 			
-		});
-	} else {
-		console.log("Hit cache " + fname);
-		merge_objects(result, JSON.parse(data));
-		res.json(result);
-		return true;
-	}
-		// res.send(output);
+			});
+		} else {
+			console.log("Hit cache " + fname);
+			merge_objects(result, JSON.parse(data));
+			res.json(result);
+			return true;
+		}
 		return true;
 	});
 }
 
-function set_headers(res) {
-	res.setHeader("Cache-Control", "no-transform,public,max-age=86400,s-maxage=86400");
-}
-// function fix_cors_header(req, res, next) {
-// 	res.setHeader("Access-Control-Allow-Origin", "*");
-// 	console.log(res.headers());
-// 	res.send();
-// 	next();
-// }
-
-function political(req, res, next) {
-	set_headers(res);
-	// res.setHeader("Access-Control-Allow-Origin", "*");
-	// console.log(res.headers());
-	var demarcation = req.params.demarcation;
-	var year = req.params.year || "2014";
-	var check = check_map(demarcation, political_maps);
-	if (check !== true) {
-		console.log(check);
-		return next(check);
-	}
-	console.log('Got demarcation request /political/' + year + "/" + demarcation);
-	console.log(req.params);
-	//Default parameters
-	var params = {
+function defaultParams(req) {
+	params = {
 		format: req.params.format || "topojson",
 		'coordinate-system': req.params.coordinate_system || "cartesian",
 		quantization: req.params.quantization || 1000,
@@ -255,42 +241,163 @@ function political(req, res, next) {
 			return true;
 		},
 	};
+	for (var p in req.params) {
+		params[p] = req.params[p];
+	}
+	return params;
+}
+
+function political(req, res, next) {
+	var demarcation = req.params.demarcation;
+	var year = req.params.year || "2014";
+	var check = check_map(demarcation, political_maps);
+	if (check !== true) {
+		return next(check);
+	}
+	console.log('Got demarcation request /political/' + year + "/" + demarcation);
+	//Default parameters
+	var params = defaultParams(req);
 
 	var check = generate_map(year, demarcation, res, params);
-	// console.log(result);
 	if (check !== true) {
-		// console.log(check);
 		return next(check);
 	}
 	next();
 }
 
+function findGeofile(dir) {
+	var files = fs.readdirSync(dir);
+	for(var x = 0; x < files.length; x++) {
+		if (files[x].indexOf("geojson") > 0) {
+			return dir + "/" + files[x];
+		}
+	}
+	return false;
+}
+
+function showMap(req, res, next) {
+	var mapname = req.params.mapname;
+	var params = defaultParams(req);
+
+	//Set up a result object so we an add some extra data to it
+	var result = { source: "Code4SA", params: params };
+	var paramsarray = safe_array(flatten_object(params));
+	
+	var cachename = "./cache/" + paramsarray.join("-") + ".json";
+	fs.readFile(cachename, function(err, data) {
+		if (err) {
+			console.log("Cache miss, " + cachename);
+			db.collection('maps').find({ name: mapname }).toArray(function(err, data) {
+				fname = "./maps" + data[0].filename;
+				if (!fname) {
+					return new restify.InvalidArgumentError("Unable to find the files for this map.");
+				}
+				fs.readFile(fname, "utf8", function(err, data) {
+					console.log("Read file");
+					makeMap(data, params, cachename, result);
+					res.json(result);
+					return true;
+				});
+			});
+			
+			
+			
+		} else {
+			console.log("Cache hit, " + cachename);
+			merge_objects(result, JSON.parse(data));
+			res.json(result);
+			return true;
+		}
+	});
+	// res.json("Hello")
+}
+
+function showMapOptions(req, res, next) {
+	var tmp = [];
+	var collection = db
+		.collection('maps')
+		.find({})
+		.toArray(function(err, docs) {
+			res.json(docs);
+			next();
+    	});
+}
+
 function readme(req, res, next) {
 	fs.readFile("API.md", "utf8", function(err, data) {
-		// var md = markdown.toHTML(data);
 		res.contentType="text/plain";
 		res.send(data);
 	});
 	next();
 }
 
+function fix_cors_header(req, res, next) {
+	res.setHeader("Cache-Control", "no-transform,public,max-age=86400,s-maxage=86400");
+	next();
+}
+
+var db = null;
+function mongoConnect(req, res, next) {
+	MongoClient.connect('mongodb://127.0.0.1:27017/' + config.mongodb, function(err, localdb) {
+		if(err) throw err;
+		db = localdb;
+		checkDbExists();
+		next();	
+	});
+	
+}
+
+function checkDbExists() {
+	var test = db.collection('maps').find({}).toArray(function(err, docs) {
+		if (err) throw err;
+		if (!docs.length) {
+			console.log("Could not find maps database");
+			var defaultData = require('./default');
+			db.collection('maps').insert(defaultData.maps, function(err, docs) {
+				if (err) throw err;
+				console.log("Created maps database");
+			})
+		}
+	})
+}
+
+function createDB() {
+	MongoClient.connect('mongodb://127.0.0.1:27017/' + config.mongodb, function(err, localdb) {
+		if(err) throw err;
+		var defaultData = require('./default');
+
+		localdb.collection('maps').drop();
+		localdb.collection('maps').insert(defaultData.maps, function(err, docs) {
+			if (err) throw err;
+			console.log("Created maps database");
+		});
+	});
+}
+
 //Set up server
 var server = restify.createServer({
-	name: 'Code4SA-Maps-API'
+	name: config.serverName
 });
-// server.use(restify.CORS({
-// 	matchOrigin: false
-// }));
+createDB();
 server.use(restify.fullResponse());
 server.use(restify.queryParser());
-// server.use(fix_cors_header);
-// Routes
+server.use(fix_cors_header);
+server.use(mongoConnect);
+
+// Old Routes [DEPRECATED]
 server.get('/political/:demarcation', political);
-// server.head('/political/:demarcation', fix_cors_header);
 server.get('/political/:year/:demarcation', political);
+
+// Country/region Routes
+server.get('/map/:mapname', showMap);
+server.get('/map', showMapOptions);
+
+// Default route
 server.get('/', readme)
 
+
+
 //Listen for incoming connections
-server.listen(8080, function() {
-	console.log('Listening on port 8080');
+server.listen(config.port, function() {
+	console.log('Listening on port ' + config.port);
 });

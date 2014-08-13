@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Map Test</title>
+	<link rel="stylesheet" href="">
+	<script src="static/d3/d3.v3.min.js"></script>
+	<script src="static/d3/topojson.v1.min.js"></script>
+	
+</head>
+<body>
+	
+</body>
+<script>
+		var width = 960,
+		height = 1160;
+
+		var svg = d3.select("body").append("svg")
+			.attr("width", width)
+			.attr("height", height);
+
+		d3.json("http://localhost:8082/map/zar/political/province/2011", function(error, map) {
+			console.log(map);
+			var area = svg.insert("g");
+			area
+				.data(map.features)
+				selectAll("path")
+				.enter()
+				// .insert("path")
+				.style("fill", "#444")
+				.attr("d", d3.geo.path().projection(d3.geo.mercator()));
+		});
+	</script>
+</html>
