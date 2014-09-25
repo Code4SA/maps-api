@@ -314,11 +314,18 @@ function showMap(req, res, next) {
 
 function showMapOptions(req, res, next) {
 	var tmp = [];
+	// console.log(req.headers);
 	var collection = db
 		.collection('maps')
 		.find({})
 		.toArray(function(err, docs) {
-			res.json(docs);
+			var tmp = docs.map(function(item) {
+				var res = item;
+				// console.log(item);
+				res.url = 'http://' + req.headers.host + "/map/" + item.name;
+				return res;
+			});
+			res.json(tmp);
 			next();
     	});
 }
@@ -399,5 +406,5 @@ server.get('/', readme)
 
 //Listen for incoming connections
 server.listen(config.port, function() {
-	console.log('Listening on port ' + config.port);
+	console.log('Listening on address http://127.0.0.1:' + config.port);
 });
