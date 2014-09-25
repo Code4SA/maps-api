@@ -105,10 +105,18 @@ defaultData = {
 			country: "zar"
 		},
 		{
-			name: "usa-congressional_districts-2013",
-			description: "South African voting station maps, 2011",
+			name: "zar-police-2014",
+			description: "South African provincial maps, 2014",
 			source: "South Africa Demarcations Board",
 			source_url: "demarcation.org.za",
+			filename: "/zar/police/2014/station_boundaries.geojson",
+			country: "zar"
+		},
+		{
+			name: "usa-congressional_districts-2013",
+			description: "United States of America Congressional Districts, 2013",
+			source: "United States Census Bureau",
+			source_url: "https://www.census.gov/geo/maps-data/data/cbf/cbf_cds.html",
 			filename: "/usa/political/congressional_districts/2013/us-congressional_districts-2013.geojson",
 			country: "usa"
 		},
