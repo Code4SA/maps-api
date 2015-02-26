@@ -292,6 +292,7 @@ server.get('/political/:year/:demarcation', political);
 server.get('/', readme)
 
 //Listen for incoming connections
-server.listen(8080, function() {
-	console.log('Listening on port 8080');
+var port = process.env.PORT || 8080;
+server.listen(port, function() {
+	console.log('Listening on port ' + port);
 });
