@@ -16,3 +16,4 @@ shp
 *.lyr
 voting_district.geojson
 ward.geojson
+node_modules
