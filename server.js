@@ -1,4 +1,5 @@
 // Libraries
+var newrelic = require('newrelic');
 var restify = require('restify');
 var topojson = require('topojson');
 var fs = require('fs');
