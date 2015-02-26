@@ -21,6 +21,6 @@
     "markdown": "^0.5.0",
     "newrelic": "^1.17.0",
     "restify": "^2.8.5",
-    "topojson": "^1.6.18"
+    "topojson": "^1.6.5"
   }
 }
