@@ -1,5 +1,9 @@
 # Code4SA Maps API
 
+# Deprecation notice
+
+This API is deprecated and will be removed by the end of 2015. Please don't rely on it.
+
 The Code4SA Maps API provides a machine-readable dataset sourced from the Demarations Board of South Africa. It allows you to build a news application, a web page, or any other type of software (or hardware, if you're so inclined) that needs SA map data.
 
 This page will discuss what data are available, how you're allowed to use our API, and show some examples of this API being used in the wild. It does not go into the technical details of how to access the API.
@@ -50,3 +54,13 @@ The API service is licensed under a [Creative Commons Attribution 4.0 Internatio
 We currently have no rate limits. If, however, you're klapping our servers and we feel that you're not playing nicely, we reserve the right to either rate limit you or just lock you out.
 
 We are considering commercial offerings with higher or unlimited rates. At the moment, everything is free for as much as you can eat, so enjoy it while we still feel benevolent.
+
+# Deployment
+
+This app runs on Dokku on a Code4SA server. This environment is compatible with Heroku and can also be run there. We've found that the memory limit for free Heroku apps isn't sufficient for this app, hence Dokku.
+
+To deploy:
+
+    git remote add dokku dokku@dokku.code4sa.org
+		git push dokku
+
