@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+echo "-----> post_compile hook"
+
+echo "-----> unzipping data"
+find data -name *.gz | xargs gunzip
