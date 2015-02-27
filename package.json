@@ -5,6 +5,7 @@
   "main": "server.js",
   "private": true,
   "scripts": {
+    "prestart": "bin/prestart",
     "start": "node server.js"
   },
   "repository": {
