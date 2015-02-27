@@ -138,10 +138,10 @@ function generate_map(year, demarcation, res, params) {
 	
 	//Find the right year
 	var finalyear = find_file(year, demarcation);
-	var basename = "data/" + finalyear + "/" + demarcation;
-	if (!basename) {
-		return new restify.InvalidArgumentError("Unable to find this demarcation for this or preceding years.");
+	if (!finalyear) {
+		return new restify.InvalidArgumentError("Unable to find this demarcation for this or preceding years: " + year + ", " + demarcation);
 	}
+	var basename = "data/" + finalyear + "/" + demarcation;
 	
 	//Set up a result object so we an add some extra data to it
 	var result = { source: "Code4SA", year: finalyear, params: params };
