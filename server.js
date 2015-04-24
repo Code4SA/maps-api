@@ -276,6 +276,12 @@ function readme(req, res, next) {
 	next();
 }
 
+function ping(req, res, next) {
+	res.contentType="text/plain";
+	res.send('pong');
+	next();
+}
+
 //Set up server
 var server = restify.createServer({
 	name: 'Code4SA-Maps-API'
@@ -290,7 +296,8 @@ server.use(restify.queryParser());
 server.get('/political/:demarcation', political);
 // server.head('/political/:demarcation', fix_cors_header);
 server.get('/political/:year/:demarcation', political);
-server.get('/', readme)
+server.get('/', readme);
+server.get('/ping', ping);
 
 //Listen for incoming connections
 var port = process.env.PORT || 8080;

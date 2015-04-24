@@ -277,7 +277,9 @@ exports.config = {
      *
      * @env NEW_RELIC_IGNORING_RULES
      */
-    ignore : []
+    ignore : [
+      '^/ping',
+    ]
   },
   /**
    * By default, any transactions that are not affected by other bits of
