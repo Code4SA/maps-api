@@ -180,7 +180,7 @@ exports.config = {
      *
      * @env NEW_RELIC_ERROR_COLLECTOR_IGNORE_ERROR_CODES
      */
-    ignore_status_codes : [404]
+    ignore_status_codes : [404, 405, 406, 409]
   },
   transaction_tracer : {
     /**
