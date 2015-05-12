@@ -61,6 +61,6 @@ This app runs on Dokku on a Code4SA server. This environment is compatible with 
 
 To deploy:
 
-    git remote add dokku dokku@dokku.code4sa.org
-		git push dokku
+    git remote add dokku dokku@dokku.code4sa.org:maps
+    git push dokku
 
