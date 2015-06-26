@@ -61,6 +61,14 @@ This app runs on Dokku on a Code4SA server. This environment is compatible with 
 
 To deploy:
 
-    git remote add dokku dokku@dokku.code4sa.org:maps
-    git push dokku
+Create the app on Dokku
 
+Set the configs:
+```bash
+dokku config:set election-api NEW_RELIC_APP_NAME="Maps" \
+                              NEW_RELIC_LICENSE_KEY=some-license-key \
+```
+```bash
+git remote add dokku dokku@dokku2.code4sa.org:maps
+git push dokku
+```
