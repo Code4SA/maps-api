@@ -1,8 +1,8 @@
-# Code4SA Maps API
-
 # Deprecation notice
 
-This API is deprecated and will be removed by the end of 2015. Please don't rely on it.
+This API is deprecated and will be removed by the end of 2015. Please use http://mapit.code4sa.org/ instead.
+
+# Code4SA Maps API
 
 The Code4SA Maps API provides a machine-readable dataset sourced from the Demarations Board of South Africa. It allows you to build a news application, a web page, or any other type of software (or hardware, if you're so inclined) that needs SA map data.
 
